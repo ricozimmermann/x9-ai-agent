@@ -1,0 +1,94 @@
+{
+  "name": "x9",
+  "displayName": "X9 - AI Agent Monitor",
+  "description": "Monitor de consumo de tokens, cache performance, requests, modelos e métricas de agentes de IA do GitHub Copilot",
+  "version": "0.2.1",
+  "publisher": "x9",
+  "author": "Ricardo César Zimmermann",
+  "contributors": [
+    {
+      "name": "GitHub Copilot (Claude Sonnet)",
+      "url": "https://github.com/features/copilot"
+    }
+  ],
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization"
+  ],
+  "keywords": [
+    "copilot",
+    "ai",
+    "tokens",
+    "monitor",
+    "vibe-coded"
+  ],
+  "icon": "resources/icon.png",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "x9-sidebar",
+          "title": "X9 AI Agent Monitor",
+          "icon": "resources/activity-bar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "x9-sidebar": [
+        {
+          "type": "webview",
+          "id": "x9.sidebarView",
+          "name": "AI Agent Monitor"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "x9.togglePanel",
+        "title": "X9: Open Monitor Panel"
+      },
+      {
+        "command": "x9.refreshMetrics",
+        "title": "X9: Refresh Metrics"
+      }
+    ],
+    "configuration": {
+      "title": "X9 AI Agent Monitor",
+      "properties": {
+        "x9.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Atualizar métricas automaticamente em tempo real"
+        },
+        "x9.refreshInterval": {
+          "type": "number",
+          "default": 2000,
+          "description": "Intervalo de atualização em milissegundos (padrão: 2000ms)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^6.x",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8.x",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {}
+}
