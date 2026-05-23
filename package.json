@@ -67,6 +67,11 @@
           "default": true,
           "description": "Atualizar métricas automaticamente em tempo real"
         },
+        "x9.scanAllWorkspaces": {
+          "type": "boolean",
+          "default": true,
+          "description": "Agrega sessões de todos os workspaces (quando desativado, usa apenas o workspace mais recente com logs)"
+        },
         "x9.refreshInterval": {
           "type": "number",
           "default": 2000,
@@ -85,10 +90,9 @@
   "devDependencies": {
     "@types/node": "^20.x",
     "@types/vscode": "^1.95.0",
-    "@typescript-eslint/eslint-plugin": "^6.x",
-    "@typescript-eslint/parser": "^6.x",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.x",
     "typescript": "^5.3.0"
-  },
-  "dependencies": {}
+  }
 }

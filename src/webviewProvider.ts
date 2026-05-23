@@ -19,11 +19,17 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
   ): void {
     this.view = webviewView;
 
+        const nonce = getNonce();
+
     webviewView.webview.options = {
       enableScripts: true,
+            localResourceRoots: [this.context.extensionUri],
     };
 
-    webviewView.webview.html = this.getHtmlContent();
+        webviewView.webview.html = this.getHtmlContent(
+            webviewView.webview,
+            nonce,
+        );
 
     webviewView.onDidDispose(() => {
       this.view = undefined;
@@ -73,12 +79,13 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
   /**
    * Gera o HTML do painel
    */
-  private getHtmlContent(): string {
+    private getHtmlContent(webview: vscode.Webview, nonce: string): string {
     return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
     <title>X9 AI Agent Monitor</title>
     <style>
         * {
@@ -487,11 +494,21 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
         </div>
     </div>
 
-    <script>
+    <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
 
         let allMetrics = [];
         let currentPeriod = 'month';
+
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
         // Botões de período
         document.querySelectorAll('.period-btn').forEach(btn => {
@@ -590,7 +607,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
                              style="height:\${(data.sessions / maxSessions * 100).toFixed(0)}%"
                              title="\${data.sessions} sessão(ões) · \${formatNumber(data.tokens)} tokens"></div>
                     </div>
-                    <div class="hist-label">\${day}</div>
+                    <div class="hist-label">\${escapeHtml(day)}</div>
                 </div>
             \`).join('');
             document.getElementById('usageHistory').innerHTML =
@@ -618,7 +635,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
             const maxCalls = sorted[0].calls;
             const rows = sorted.map(t => \`
                 <div class="tool-row">
-                    <div class="tool-name" title="\${t.name}">\${t.name}</div>
+                    <div class="tool-name" title="\${escapeHtml(t.name)}">\${escapeHtml(t.name)}</div>
                     <div class="tool-bar-wrap">
                         <div class="tool-bar" style="width:\${(t.calls / maxCalls * 100).toFixed(0)}%"></div>
                     </div>
@@ -668,7 +685,6 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
             // Usar como denominador apenas sessões que já tinham cache ativo
             // (exclui sessões cold-start que nunca tiveram tokens cacheados)
             const totalRequests = metrics.reduce((sum, m) => sum + m.requestCount, 0);
-            const totalUserMessages = metrics.reduce((sum, m) => sum + (m.userMessages || 0), 0);
             const totalToolCalls = metrics.reduce((sum, m) => sum + m.toolCalls, 0);
             const totalErrors = metrics.reduce((sum, m) => sum + m.errors, 0);
             const inputTokensWithCache = metrics.reduce((sum, m) => sum + ((m.cachedTokens || 0) > 0 ? (m.inputTokens || 0) : 0), 0);
@@ -684,11 +700,6 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
                     <div class="stat-label">Cache Hit Rate</div>
                     <div class="stat-value">\${cacheHitRate}%</div>
                     <div style="font-size:10px;opacity:0.6">\${formatNumber(totalCachedTokens)} tokens cacheados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Premium Req (est.)</div>
-                    <div class="stat-value">\${totalUserMessages.toFixed(1)}</div>
-                    <div style="font-size:10px;opacity:0.6">ponderado por modelo</div>
                 </div>
                 <div class="stat-card">
 
@@ -728,7 +739,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
             if (stats.length === 0) return '';
             const rows = stats.map(s => \`
                 <tr>
-                    <td title="\${s.model}">\${s.model}</td>
+                    <td title="\${escapeHtml(s.model)}">\${escapeHtml(s.model)}</td>
                     <td>\${s.requests}</td>
                     <td>\${formatNumber(s.inputTokens)}</td>
                     <td>\${formatNumber(s.outputTokens)}</td>
@@ -758,7 +769,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
             const html = metrics.map(session => \`
                 <div class="session-item">
                     <div class="session-header">
-                        <div class="session-id">📋 \${session.sessionId}</div>
+                        <div class="session-id">📋 \${escapeHtml(session.sessionId)}</div>
                         <div class="session-time">\${formatDate(session.timestamp)}</div>
                     </div>
                     <div class="session-metrics">
@@ -777,10 +788,6 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
                         <div class="metric">
                             <div class="metric-label">Duração</div>
                             <div class="metric-value">\${formatDuration(session.duration)}</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Premium Req (est.)</div>
-                            <div class="metric-value">\${(session.userMessages || 0).toFixed(1)}</div>
                         </div>
                         <div class="metric">
 
@@ -840,4 +847,14 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
 </body>
 </html>`;
   }
+}
+
+function getNonce(): string {
+    const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let value = "";
+    for (let i = 0; i < 32; i++) {
+        value += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return value;
 }

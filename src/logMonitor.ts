@@ -22,7 +22,7 @@ export class LogMonitor {
   start(callback: (metrics: SessionMetrics[]) => void) {
     this.onMetricsUpdated = callback;
 
-    const allLogDirs = this.getAllDebugLogDirs();
+    const allLogDirs = this.getLogDirs();
 
     if (allLogDirs.length === 0) {
       console.warn("[X9] Nenhum diretório de debug-logs encontrado.");
@@ -34,7 +34,7 @@ export class LogMonitor {
 
     console.log(`[X9] Monitorando ${allLogDirs.length} workspace(s)...`);
 
-    // Carregar logs existentes de todos os workspaces
+    // Carregar logs existentes de todos os workspaces selecionados
     this.loadExistingLogs(allLogDirs);
 
     console.log(`[X9] ${this.currentMetrics.size} sessões carregadas`);
@@ -258,7 +258,7 @@ export class LogMonitor {
    * Força uma atualização manual
    */
   refresh() {
-    const allDirs = this.getAllDebugLogDirs();
+    const allDirs = this.getLogDirs();
     if (allDirs.length === 0) {
       return;
     }
@@ -287,5 +287,20 @@ export class LogMonitor {
     }
 
     this.notifyUpdate();
+  }
+
+  /**
+   * Retorna os diretórios de logs de acordo com a configuração.
+   */
+  private getLogDirs(): string[] {
+    const config = vscode.workspace.getConfiguration("x9");
+    const scanAll = config.get("scanAllWorkspaces", true);
+
+    if (scanAll) {
+      return this.getAllDebugLogDirs();
+    }
+
+    const singleDir = this.getDebugLogDir();
+    return singleDir ? [singleDir] : [];
   }
 }

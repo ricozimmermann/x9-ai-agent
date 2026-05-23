@@ -9,7 +9,7 @@ Extensão para monitorar o consumo de recursos de agentes de IA do GitHub Copilo
 - ⏱️ **Duração**: tempo total de cada sessão
 - 🔧 **Tool calls**: ferramentas invocadas pelos agentes
 - ❌ **Erros**: monitoramento de falhas durante execução
-- 📜 **Histórico**: sessões de todos os workspaces agregadas em uma única view
+- 📜 **Histórico**: sessões de todos os workspaces agregadas em uma única view (opcional)
 - 📅 **Filtros de período**: mês atual, últimos 7 dias ou todo o histórico
 - 💡 **Interface na barra lateral**: painel fixo na Activity Bar do VS Code
 
@@ -26,7 +26,6 @@ Extensão para monitorar o consumo de recursos de agentes de IA do GitHub Copilo
 |---|---|
 | Total de Tokens | Soma de todos os tokens (input + output) de todas as sessões |
 | Cache Hit Rate | % de tokens de input servidos da cache do provider LLM |
-| Msgs (≈ Premium Req) | Mensagens enviadas pelo usuário (proxy de requisições premium) |
 | LLM Calls Internas | Total de chamadas ao modelo (inclui chamadas agênticas internas) |
 | Tool Calls | Invocações de ferramentas pelos agentes |
 | Erros | Falhas detectadas nos eventos de log |
@@ -43,8 +42,19 @@ Extensão para monitorar o consumo de recursos de agentes de IA do GitHub Copilo
 
 | Configuração | Padrão | Descrição |
 |---|---|---|
-| `x9.autoRefresh` | `true` | Atualizar métricas automaticamente |
-| `x9.refreshInterval` | `2000` | Intervalo de atualização em ms |
+| `x9.autoRefresh` | `true` | Atualiza as métricas automaticamente. Se `false`, use o comando `X9: Refresh Metrics` para atualizar manualmente. |
+| `x9.refreshInterval` | `2000` | Intervalo em ms entre leituras. Valores menores aumentam uso de CPU/IO. Só se aplica quando `x9.autoRefresh` está `true`. |
+| `x9.scanAllWorkspaces` | `true` | Agrega sessões de todos os workspaces com logs. Se `false`, usa apenas o workspace mais recente com logs (o “mais recente” pode mudar quando você usa o Copilot em outro workspace). |
+
+Exemplo de `settings.json`:
+
+```json
+{
+   "x9.autoRefresh": true,
+   "x9.refreshInterval": 2000,
+   "x9.scanAllWorkspaces": true
+}
+```
 
 ## Desenvolvimento
 

@@ -9,7 +9,6 @@ export interface SessionMetrics {
   outputTokens: number;
   cachedTokens: number;
   requestCount: number;
-  userMessages: number;
   toolCalls: number;
   errors: number;
   models: string[];
